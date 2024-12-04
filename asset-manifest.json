@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/world-explorer/static/css/main.9c115f3d.css",
+    "main.js": "/world-explorer/static/js/main.0973a402.js",
+    "static/js/453.8ab44547.chunk.js": "/world-explorer/static/js/453.8ab44547.chunk.js",
+    "index.html": "/world-explorer/index.html",
+    "main.9c115f3d.css.map": "/world-explorer/static/css/main.9c115f3d.css.map",
+    "main.0973a402.js.map": "/world-explorer/static/js/main.0973a402.js.map",
+    "453.8ab44547.chunk.js.map": "/world-explorer/static/js/453.8ab44547.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9c115f3d.css",
+    "static/js/main.0973a402.js"
+  ]
+}
