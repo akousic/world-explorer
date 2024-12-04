@@ -49,6 +49,11 @@ const ItemsPerPageSelector = ({ itemsPerPage, setItemsPerPage }) => {
 };
 
 const parsePopulation = (population) => {
+    // Handle special cases like research staff in Antarctica
+    if (typeof population !== 'string' || population.includes('research staff')) {
+        return 0;
+    }
+
     // Remove commas and convert to lowercase
     const normalized = population.toLowerCase().replace(/,/g, '');
 
@@ -66,6 +71,7 @@ const parsePopulation = (population) => {
             return numericValue;
     }
 };
+
 
 const GeographyApp = () => {
     const [selectedSection, setSelectedSection] = useState('continents');
@@ -105,6 +111,7 @@ const GeographyApp = () => {
         }));
     };
 
+    // Update the sorting logic in the component
     const sortedAndFilteredItems = useMemo(() => {
         let items = geographyData[selectedSection] || [];
 
@@ -127,12 +134,19 @@ const GeographyApp = () => {
             if (sortConfig.field === 'population') {
                 aValue = parsePopulation(aValue);
                 bValue = parsePopulation(bValue);
+            } else {
+                // For other string fields
+                aValue = String(aValue).toLowerCase();
+                bValue = String(bValue).toLowerCase();
             }
 
-            if (sortConfig.direction === 'asc') {
-                return aValue > bValue ? 1 : -1;
+            // Sort direction
+            const multiplier = sortConfig.direction === 'asc' ? 1 : -1;
+
+            if (sortConfig.field === 'population') {
+                return (aValue - bValue) * multiplier;
             } else {
-                return aValue < bValue ? 1 : -1;
+                return aValue > bValue ? multiplier : -multiplier;
             }
         });
 
