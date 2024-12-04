@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Globe, MapPin, Search, ImageIcon } from 'lucide-react';
 
 const geographyData = {
@@ -178,13 +178,48 @@ const geographyData = {
     ]
 };
 
+const useImageCache = () => {
+    const [imageCache, setImageCache] = useState(new Set());
+
+    const preloadImage = (src) => {
+        if (!src || imageCache.has(src)) return;
+
+        const img = new Image();
+        img.src = src;
+        setImageCache(prev => new Set(prev).add(src));
+    };
+
+    const isImageCached = (src) => {
+        return imageCache.has(src);
+    };
+
+    return { preloadImage, isImageCached };
+};
+
 const GeographyApp = () => {
     const [selectedSection, setSelectedSection] = useState('continents');
     const [selectedItem, setSelectedItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const { preloadImage, isImageCached } = useImageCache();
+
+    const filteredItems = useMemo(() => {
+        return geographyData[selectedSection]?.filter(item =>
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (item.capital && item.capital.toLowerCase().includes(searchTerm.toLowerCase()))
+        ) || [];
+    }, [selectedSection, searchTerm]);
+
+    useEffect(() => {
+        filteredItems.forEach(item => {
+            preloadImage(item.flag || item.image);
+            if (item.landmarks) {
+                item.landmarks.forEach(landmark => preloadImage(landmark.image));
+            }
+        });
+    }, [filteredItems]);
 
     const ImageWithLoading = ({ src, alt, className, imageId }) => {
-        const [isLoading, setIsLoading] = useState(true);
+        const [isLoading, setIsLoading] = useState(!isImageCached(src));
 
         return (
             <div className="relative">
@@ -196,18 +231,14 @@ const GeographyApp = () => {
                 <img
                     src={src}
                     alt={alt}
-                    className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                    className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
                     onLoad={() => setIsLoading(false)}
                     onError={() => setIsLoading(false)}
+                    loading="lazy"
                 />
             </div>
         );
     };
-
-    const filteredItems = geographyData[selectedSection]?.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.capital && item.capital.toLowerCase().includes(searchTerm.toLowerCase()))
-    ) || [];
 
     const InfoCard = ({ title, content }) => (
         <div className="bg-white/90 p-3 rounded-lg border">
@@ -216,17 +247,116 @@ const GeographyApp = () => {
         </div>
     );
 
+    const ItemList = useMemo(() => (
+        <div className="space-y-2">
+            {filteredItems.map((item) => (
+                <div
+                    key={item.id}
+                    onClick={() => setSelectedItem(item)}
+                    className={`p-4 rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200 ${
+                        selectedItem?.id === item.id ? 'border-blue-500 border-2' : 'border'
+                    }`}
+                >
+                    <div className="flex items-center gap-4">
+                        <ImageWithLoading
+                            src={item.flag || item.image}
+                            alt={item.name}
+                            className="w-16 h-16 rounded-lg object-cover"
+                            imageId={`list-${item.id}`}
+                        />
+                        <div>
+                            <h3 className="font-semibold">{item.name}</h3>
+                            {item.capital && (
+                                <p className="text-sm text-gray-600">Capital: {item.capital}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    ), [filteredItems, selectedItem]);
+
+    const DetailsView = useMemo(() => {
+        if (!selectedItem) return null;
+
+        return (
+            <div className="border rounded-lg p-4 bg-white">
+                <div className="space-y-4">
+                    <h3 className="text-xl font-semibold">{selectedItem.name}</h3>
+
+                    <ImageWithLoading
+                        src={selectedItem.flag || selectedItem.image}
+                        alt={selectedItem.name}
+                        className="w-full h-48 rounded-lg object-cover"
+                        imageId={`detail-${selectedItem.id}`}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {selectedItem.capital && (
+                            <InfoCard title="Capital" content={selectedItem.capital} />
+                        )}
+                        <InfoCard title="Population" content={selectedItem.population} />
+                        {selectedItem.currency && (
+                            <InfoCard title="Currency" content={selectedItem.currency} />
+                        )}
+                        {selectedItem.continent && (
+                            <InfoCard title="Continent" content={selectedItem.continent} />
+                        )}
+                    </div>
+
+                    {selectedItem.facts && (
+                        <div className="bg-white/90 p-4 rounded-lg border">
+                            <h4 className="font-semibold mb-2">Facts</h4>
+                            <ul className="list-disc pl-5 space-y-2">
+                                {selectedItem.facts.map((fact, index) => (
+                                    <li key={index}>{fact}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {selectedItem.landmarks && (
+                        <div className="bg-white/90 p-4 rounded-lg border">
+                            <h4 className="font-semibold mb-2">Famous Landmarks</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {selectedItem.landmarks.map((landmark, index) => (
+                                    <div key={index} className="space-y-1">
+                                        <ImageWithLoading
+                                            src={landmark.image}
+                                            alt={landmark.name}
+                                            className="w-full h-32 object-cover rounded-lg"
+                                            imageId={`landmark-${selectedItem.id}-${index}`}
+                                        />
+                                        <p className="text-sm font-medium text-center">{landmark.name}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {selectedItem.funFacts && (
+                        <div className="bg-white/90 p-4 rounded-lg border">
+                            <h4 className="font-semibold mb-2">Fun Facts</h4>
+                            <ul className="list-disc pl-5 space-y-2">
+                                {selectedItem.funFacts.map((fact, index) => (
+                                    <li key={index}>{fact}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }, [selectedItem]);
+
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Main Content */}
             <div className="max-w-4xl mx-auto p-4 space-y-6">
-                {/* Header */}
                 <div className="text-center space-y-2">
                     <h1 className="text-3xl font-bold text-blue-600">World Explorer</h1>
                     <p className="text-lg text-gray-600">Learn about our amazing world!</p>
                 </div>
 
-                {/* Navigation */}
                 <div className="flex justify-center gap-4">
                     <button
                         onClick={() => {
@@ -234,7 +364,7 @@ const GeographyApp = () => {
                             setSelectedItem(null);
                             setSearchTerm('');
                         }}
-                        className={`flex items-center gap-2 p-3 rounded-lg ${
+                        className={`flex items-center gap-2 p-3 rounded-lg transition-colors duration-200 ${
                             selectedSection === 'continents' ? 'bg-blue-500 text-white' : 'bg-white hover:bg-gray-50'
                         }`}
                     >
@@ -247,7 +377,7 @@ const GeographyApp = () => {
                             setSelectedItem(null);
                             setSearchTerm('');
                         }}
-                        className={`flex items-center gap-2 p-3 rounded-lg ${
+                        className={`flex items-center gap-2 p-3 rounded-lg transition-colors duration-200 ${
                             selectedSection === 'countries' ? 'bg-blue-500 text-white' : 'bg-white hover:bg-gray-50'
                         }`}
                     >
@@ -256,7 +386,6 @@ const GeographyApp = () => {
                     </button>
                 </div>
 
-                {/* Search */}
                 <div className="relative">
                     <input
                         type="text"
@@ -268,109 +397,14 @@ const GeographyApp = () => {
                     <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
                 </div>
 
-                {/* Content */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* List */}
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">
                             {selectedSection === 'continents' ? 'Continents' : 'Countries'}
                         </h2>
-                        <div className="space-y-2">
-                            {filteredItems.map((item) => (
-                                <div
-                                    key={item.id}
-                                    onClick={() => setSelectedItem(item)}
-                                    className={`p-4 rounded-lg cursor-pointer bg-white ${
-                                        selectedItem?.id === item.id ? 'border-blue-500 border-2' : 'border'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <ImageWithLoading
-                                            src={item.flag || item.image}
-                                            alt={item.name}
-                                            className="w-16 h-16 rounded-lg object-cover"
-                                            imageId={`list-${item.id}`}
-                                        />
-                                        <div>
-                                            <h3 className="font-semibold">{item.name}</h3>
-                                            {item.capital && (
-                                                <p className="text-sm text-gray-600">Capital: {item.capital}</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        {ItemList}
                     </div>
-
-                    {/* Details */}
-                    {selectedItem && (
-                        <div className="border rounded-lg p-4 bg-white">
-                            <div className="space-y-4">
-                                <h3 className="text-xl font-semibold">{selectedItem.name}</h3>
-                                <ImageWithLoading
-                                    src={selectedItem.flag || selectedItem.image}
-                                    alt={selectedItem.name}
-                                    className="w-full h-48 object-cover rounded-lg"
-                                    imageId={`detail-${selectedItem.id}`}
-                                />
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    {selectedItem.capital && (
-                                        <InfoCard title="Capital" content={selectedItem.capital} />
-                                    )}
-                                    <InfoCard title="Population" content={selectedItem.population} />
-                                    {selectedItem.currency && (
-                                        <InfoCard title="Currency" content={selectedItem.currency} />
-                                    )}
-                                    {selectedItem.continent && (
-                                        <InfoCard title="Continent" content={selectedItem.continent} />
-                                    )}
-                                </div>
-
-                                {selectedItem.facts && (
-                                    <div className="bg-white/90 p-4 rounded-lg border">
-                                        <h4 className="font-semibold mb-2">Facts</h4>
-                                        <ul className="list-disc pl-5 space-y-2">
-                                            {selectedItem.facts.map((fact, index) => (
-                                                <li key={index}>{fact}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {selectedItem.landmarks && (
-                                    <div className="bg-white/90 p-4 rounded-lg border">
-                                        <h4 className="font-semibold mb-2">Famous Landmarks</h4>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {selectedItem.landmarks.map((landmark, index) => (
-                                                <div key={index} className="space-y-1">
-                                                    <ImageWithLoading
-                                                        src={landmark.image}
-                                                        alt={landmark.name}
-                                                        className="w-full h-32 object-cover rounded-lg"
-                                                        imageId={`landmark-${selectedItem.id}-${index}`}
-                                                    />
-                                                    <p className="text-sm font-medium text-center">{landmark.name}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {selectedItem.funFacts && (
-                                    <div className="bg-white/90 p-4 rounded-lg border">
-                                        <h4 className="font-semibold mb-2">Fun Facts</h4>
-                                        <ul className="list-disc pl-5 space-y-2">
-                                            {selectedItem.funFacts.map((fact, index) => (
-                                                <li key={index}>{fact}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    {DetailsView}
                 </div>
             </div>
         </div>
