@@ -1,222 +1,80 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Globe, MapPin, Search, ImageIcon } from 'lucide-react';
-
-const geographyData = {
-    continents: [
-        {
-            id: 1,
-            name: 'Asia',
-            facts: [
-                'Largest continent by land area and population',
-                'Home to Mount Everest, the highest peak',
-                'Contains 48 countries',
-                'Birthplace of major religions including Buddhism and Hinduism'
-            ],
-            population: '4.7 billion',
-            keyFeatures: ['Himalayas', 'Gobi Desert', 'Yellow River', 'Siberian Plains', 'Arabian Desert'],
-            image: 'https://images.unsplash.com/photo-1464817739973-0128fe77aaa1',
-            climate: ['Tropical', 'Arctic', 'Temperate', 'Desert', 'Subtropical'],
-            area: '44.5 million km²'
-        },
-        {
-            id: 2,
-            name: 'Africa',
-            facts: [
-                'Second largest continent',
-                'Home to the Sahara Desert',
-                'Contains 54 countries',
-                'Most diverse continent genetically'
-            ],
-            population: '1.4 billion',
-            keyFeatures: ['Sahara Desert', 'Nile River', 'Mount Kilimanjaro', 'Congo Basin', 'Great Rift Valley'],
-            image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e',
-            climate: ['Tropical', 'Desert', 'Mediterranean', 'Subtropical', 'Savanna'],
-            area: '30.37 million km²'
-        },
-        {
-            id: 3,
-            name: 'North America',
-            facts: [
-                'Third largest continent',
-                'Spans from Arctic to tropical regions',
-                'Contains 23 countries',
-                'Home to the Grand Canyon'
-            ],
-            population: '592 million',
-            keyFeatures: ['Rocky Mountains', 'Great Lakes', 'Mississippi River', 'Death Valley', 'Canadian Shield'],
-            image: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29',
-            climate: ['Arctic', 'Temperate', 'Tropical', 'Desert', 'Mediterranean'],
-            area: '24.71 million km²'
-        },
-        {
-            id: 4,
-            name: 'South America',
-            facts: [
-                'Fourth largest continent',
-                'Home to Amazon Rainforest',
-                'Contains 12 countries',
-                'Has the world\'s highest waterfall'
-            ],
-            population: '430 million',
-            keyFeatures: ['Andes Mountains', 'Amazon River', 'Angel Falls', 'Atacama Desert', 'Pantanal Wetlands'],
-            image: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325',
-            climate: ['Tropical', 'Temperate', 'Desert', 'Alpine', 'Mediterranean'],
-            area: '17.84 million km²'
-        },
-        {
-            id: 5,
-            name: 'Europe',
-            facts: [
-                'Sixth largest continent',
-                'Birthplace of Western civilization',
-                'Contains 44 countries',
-                'Home to the European Union'
-            ],
-            population: '748 million',
-            keyFeatures: ['Alps', 'Mediterranean Sea', 'Rhine River', 'Carpathian Mountains', 'Danube River'],
-            image: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b',
-            climate: ['Temperate', 'Mediterranean', 'Arctic', 'Continental', 'Oceanic'],
-            area: '10.18 million km²'
-        },
-        {
-            id: 6,
-            name: 'Australia',
-            facts: [
-                'Smallest continent',
-                'Also a country',
-                'Mostly desert or semi-arid',
-                'Home to unique wildlife'
-            ],
-            population: '25.69 million',
-            keyFeatures: ['Great Barrier Reef', 'Outback', 'Uluru', 'Great Dividing Range', 'Murray River'],
-            image: 'https://images.unsplash.com/photo-1523482580672-f109ba8cb9be',
-            climate: ['Desert', 'Tropical', 'Temperate', 'Mediterranean'],
-            area: '8.6 million km²'
-        },
-        {
-            id: 7,
-            name: 'Antarctica',
-            facts: [
-                'Southernmost continent',
-                'Almost entirely covered by ice',
-                'No permanent residents',
-                'Protected by international treaty'
-            ],
-            population: '1,000-4,000 (research staff)',
-            keyFeatures: ['Mount Erebus', 'Transantarctic Mountains', 'Ross Ice Shelf', 'Antarctic Peninsula', 'Lake Vostok'],
-            image: 'https://images.news9live.com/wp-content/uploads/2024/12/Antarctica-day-2024.jpg',
-            climate: ['Polar'],
-            area: '14.2 million km²'
-        }
-    ],
-    countries: [
-        {
-            id: 1,
-            name: 'United States',
-            capital: 'Washington, D.C.',
-            currency: 'United States Dollar ($)',
-            flag: 'https://flagcdn.com/w320/us.png',
-            population: '331.9 million',
-            landmarks: [
-                {
-                    name: 'Statue of Liberty',
-                    location: 'New York',
-                    image: 'https://images.unsplash.com/photo-1605130284535-11dd9eedc58a'
-                },
-                {
-                    name: 'Grand Canyon',
-                    location: 'Arizona',
-                    image: 'https://images.unsplash.com/photo-1474044159687-1ee9f3a51722'
-                },
-                {
-                    name: 'Mount Rushmore',
-                    location: 'South Dakota',
-                    image: 'https://images.unsplash.com/photo-1472120435266-53107fd0c44a'
-                }
-            ],
-            continent: 'North America',
-            funFacts: [
-                'Has 50 states and 5 territories',
-                'World\'s largest economy',
-                'First country to land humans on the moon'
-            ]
-        },
-        {
-            id: 2,
-            name: 'China',
-            capital: 'Beijing',
-            currency: 'Chinese Yuan (¥)',
-            flag: 'https://flagcdn.com/w320/cn.png',
-            population: '1.4 billion',
-            landmarks: [
-                {
-                    name: 'Great Wall',
-                    location: 'Northern China',
-                    image: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d'
-                },
-                {
-                    name: 'Forbidden City',
-                    location: 'Beijing',
-                    image: 'https://images.unsplash.com/photo-1584646098378-0874589d76b1'
-                },
-                {
-                    name: 'Terracotta Army',
-                    location: "Xi'an",
-                    image: 'https://images.unsplash.com/photo-1591709074929-31e3e80e441d'
-                }
-            ],
-            continent: 'Asia',
-            funFacts: [
-                'Invented paper, compass, gunpowder, and printing',
-                'Home to the world\'s largest population',
-                'Has the world\'s largest high-speed rail network'
-            ]
-        }
-        // ... continuing with remaining countries
-        // Note: Full dataset would include all 100 countries
-        // Following the same structure
-    ]
-};
+import { Globe, MapPin, Search, ImageIcon, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { geographyData } from "./db";
 
 const useImageCache = () => {
     const [imageCache, setImageCache] = useState(new Set());
 
     const preloadImage = (src) => {
-        if (!src || imageCache.has(src)) return;
+        if (!src || imageCache.has(src)) {
+            console.log('Image already cached:', src);
+            return;
+        }
+
+        console.log('Caching new image:', src);
 
         const img = new Image();
+        img.onload = () => {
+            setImageCache(prev => new Set(prev).add(src));
+            console.log('Image cached successfully:', src);
+        };
         img.src = src;
-        setImageCache(prev => new Set(prev).add(src));
     };
 
     const isImageCached = (src) => {
-        return imageCache.has(src);
+        const cached = imageCache.has(src);
+        console.log('Checking if image is cached:', src, cached);
+        return cached;
     };
 
     return { preloadImage, isImageCached };
+};
+
+const ItemsPerPageSelector = ({ itemsPerPage, setItemsPerPage }) => {
+    return (
+        <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Items per page:</label>
+            <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="p-1 border rounded-lg bg-white text-sm"
+            >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+            </select>
+        </div>
+    );
+};
+
+const parsePopulation = (population) => {
+    // Remove commas and convert to lowercase
+    const normalized = population.toLowerCase().replace(/,/g, '');
+
+    // Extract the numeric value and unit
+    const [, value, unit] = normalized.match(/^([\d.]+)\s*(billion|million|thousand)?/) || [null, 0, ''];
+
+    // Convert to a common unit (millions)
+    const numericValue = parseFloat(value);
+    switch (unit) {
+        case 'billion':
+            return numericValue * 1000; // Convert to millions
+        case 'thousand':
+            return numericValue / 1000; // Convert to millions
+        default: // 'million' or no unit
+            return numericValue;
+    }
 };
 
 const GeographyApp = () => {
     const [selectedSection, setSelectedSection] = useState('continents');
     const [selectedItem, setSelectedItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [sortConfig, setSortConfig] = useState({ field: 'name', direction: 'asc' });
+    const [itemsPerPage, setItemsPerPage] = useState(5);
     const { preloadImage, isImageCached } = useImageCache();
-
-    const filteredItems = useMemo(() => {
-        return geographyData[selectedSection]?.filter(item =>
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (item.capital && item.capital.toLowerCase().includes(searchTerm.toLowerCase()))
-        ) || [];
-    }, [selectedSection, searchTerm]);
-
-    useEffect(() => {
-        filteredItems.forEach(item => {
-            preloadImage(item.flag || item.image);
-            if (item.landmarks) {
-                item.landmarks.forEach(landmark => preloadImage(landmark.image));
-            }
-        });
-    }, [filteredItems]);
 
     const ImageWithLoading = ({ src, alt, className, imageId }) => {
         const [isLoading, setIsLoading] = useState(!isImageCached(src));
@@ -240,6 +98,66 @@ const GeographyApp = () => {
         );
     };
 
+    const handleSort = (field) => {
+        setSortConfig(prevSort => ({
+            field,
+            direction: prevSort.field === field && prevSort.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
+
+    const sortedAndFilteredItems = useMemo(() => {
+        let items = geographyData[selectedSection] || [];
+
+        // Filter items
+        items = items.filter(item => {
+            const searchLower = searchTerm.toLowerCase();
+            const matchName = item.name.toLowerCase().includes(searchLower);
+            const matchCapital = item.capital?.toLowerCase().includes(searchLower);
+            const matchContinent = selectedSection === 'countries' &&
+                item.continent.toLowerCase().includes(searchLower);
+
+            return matchName || matchCapital || matchContinent;
+        });
+
+        // Sort items
+        items = [...items].sort((a, b) => {
+            let aValue = a[sortConfig.field];
+            let bValue = b[sortConfig.field];
+
+            if (sortConfig.field === 'population') {
+                aValue = parsePopulation(aValue);
+                bValue = parsePopulation(bValue);
+            }
+
+            if (sortConfig.direction === 'asc') {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+
+        return items;
+    }, [selectedSection, searchTerm, sortConfig]);
+
+    const totalPages = Math.ceil(sortedAndFilteredItems.length / itemsPerPage);
+    const paginatedItems = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return sortedAndFilteredItems.slice(startIndex, startIndex + itemsPerPage);
+    }, [sortedAndFilteredItems, currentPage, itemsPerPage]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedSection, searchTerm, itemsPerPage]);
+
+    useEffect(() => {
+        paginatedItems.forEach(item => {
+            preloadImage(item.flag || item.image);
+            if (item.landmarks) {
+                item.landmarks.forEach(landmark => preloadImage(landmark.image));
+            }
+        });
+    }, [paginatedItems]);
+
     const InfoCard = ({ title, content }) => (
         <div className="bg-white/90 p-3 rounded-lg border">
             <div className="text-sm text-gray-600">{title}</div>
@@ -247,34 +165,89 @@ const GeographyApp = () => {
         </div>
     );
 
+    const SortButton = ({ field, children }) => (
+        <button
+            onClick={() => handleSort(field)}
+            className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600"
+        >
+            {children}
+            <ArrowUpDown size={16} className={sortConfig.field === field ? 'text-blue-600' : 'text-gray-400'} />
+        </button>
+    );
+
     const ItemList = useMemo(() => (
-        <div className="space-y-2">
-            {filteredItems.map((item) => (
-                <div
-                    key={item.id}
-                    onClick={() => setSelectedItem(item)}
-                    className={`p-4 rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200 ${
-                        selectedItem?.id === item.id ? 'border-blue-500 border-2' : 'border'
-                    }`}
-                >
-                    <div className="flex items-center gap-4">
-                        <ImageWithLoading
-                            src={item.flag || item.image}
-                            alt={item.name}
-                            className="w-16 h-16 rounded-lg object-cover"
-                            imageId={`list-${item.id}`}
-                        />
-                        <div>
-                            <h3 className="font-semibold">{item.name}</h3>
-                            {item.capital && (
-                                <p className="text-sm text-gray-600">Capital: {item.capital}</p>
-                            )}
+        <div className="space-y-4">
+            <div className="flex gap-4 mb-2 p-2 bg-white rounded-lg border">
+                <SortButton field="name">Name</SortButton>
+                {selectedSection === 'countries' && (
+                    <>
+                        <SortButton field="capital">Capital</SortButton>
+                        <SortButton field="continent">Continent</SortButton>
+                    </>
+                )}
+                <SortButton field="population">Population</SortButton>
+            </div>
+
+            <div className="space-y-2">
+                {paginatedItems.map((item) => (
+                    <div
+                        key={item.id}
+                        onClick={() => setSelectedItem(item)}
+                        className={`p-4 rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors duration-200 ${
+                            selectedItem?.id === item.id ? 'border-blue-500 border-2' : 'border'
+                        }`}
+                    >
+                        <div className="flex items-center gap-4">
+                            <ImageWithLoading
+                                src={item.flag || item.image}
+                                alt={item.name}
+                                className="w-16 h-16 rounded-lg object-cover"
+                                imageId={`list-${item.id}`}
+                            />
+                            <div className="flex-1">
+                                <h3 className="font-semibold">{item.name}</h3>
+                                {item.capital && (
+                                    <p className="text-sm text-gray-600">Capital: {item.capital}</p>
+                                )}
+                                {item.continent && (
+                                    <p className="text-sm text-gray-600">Continent: {item.continent}</p>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
+
+            <div className="flex justify-between items-center mt-4">
+                <ItemsPerPageSelector
+                    itemsPerPage={itemsPerPage}
+                    setItemsPerPage={setItemsPerPage}
+                />
+
+                {totalPages > 1 && (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="p-2 rounded-lg border bg-white disabled:opacity-50"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                        <span className="flex items-center px-4 py-2 bg-white border rounded-lg">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="p-2 rounded-lg border bg-white disabled:opacity-50"
+                        >
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
-    ), [filteredItems, selectedItem]);
+    ), [paginatedItems, selectedItem, currentPage, totalPages, sortConfig, itemsPerPage]);
 
     const DetailsView = useMemo(() => {
         if (!selectedItem) return null;
@@ -389,7 +362,7 @@ const GeographyApp = () => {
                 <div className="relative">
                     <input
                         type="text"
-                        placeholder={`Search ${selectedSection}...`}
+                        placeholder={`Search ${selectedSection} by ${selectedSection === 'countries' ? 'name, capital, or continent' : 'name'}`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full p-2 pl-10 border rounded-lg"
@@ -401,6 +374,9 @@ const GeographyApp = () => {
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">
                             {selectedSection === 'continents' ? 'Continents' : 'Countries'}
+                            <span className="text-sm text-gray-500 ml-2">
+                                ({sortedAndFilteredItems.length} items)
+                            </span>
                         </h2>
                         {ItemList}
                     </div>
