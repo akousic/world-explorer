@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, MapPin, Search } from 'lucide-react';
+import { Globe, MapPin, Search, ImageIcon } from 'lucide-react';
 
 const geographyData = {
     continents: [
@@ -183,10 +183,31 @@ const GeographyApp = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredItems = geographyData[selectedSection].filter(item =>
+    const ImageWithLoading = ({ src, alt, className, imageId }) => {
+        const [isLoading, setIsLoading] = useState(true);
+
+        return (
+            <div className="relative">
+                {isLoading && (
+                    <div className={`absolute inset-0 flex items-center justify-center bg-gray-100 ${className}`}>
+                        <ImageIcon className="w-8 h-8 text-gray-400 animate-pulse" />
+                    </div>
+                )}
+                <img
+                    src={src}
+                    alt={alt}
+                    className={`${className} ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => setIsLoading(false)}
+                />
+            </div>
+        );
+    };
+
+    const filteredItems = geographyData[selectedSection]?.filter(item =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.capital && item.capital.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    ) || [];
 
     const InfoCard = ({ title, content }) => (
         <div className="bg-white/90 p-3 rounded-lg border">
@@ -196,18 +217,9 @@ const GeographyApp = () => {
     );
 
     return (
-        <div className="min-h-screen relative">
-            {/* Background Map */}
-            <div className="fixed inset-0 z-0">
-                <img
-                    src="world-map.png"
-                    alt="World Map Background"
-                    className="w-full h-full object-cover opacity-10"
-                />
-            </div>
-
+        <div className="min-h-screen bg-gray-50">
             {/* Main Content */}
-            <div className="relative z-10 max-w-4xl mx-auto p-4 space-y-6">
+            <div className="max-w-4xl mx-auto p-4 space-y-6">
                 {/* Header */}
                 <div className="text-center space-y-2">
                     <h1 className="text-3xl font-bold text-blue-600">World Explorer</h1>
@@ -223,7 +235,7 @@ const GeographyApp = () => {
                             setSearchTerm('');
                         }}
                         className={`flex items-center gap-2 p-3 rounded-lg ${
-                            selectedSection === 'continents' ? 'bg-blue-500 text-white' : 'bg-white/80 hover:bg-white'
+                            selectedSection === 'continents' ? 'bg-blue-500 text-white' : 'bg-white hover:bg-gray-50'
                         }`}
                     >
                         <Globe size={24} />
@@ -236,7 +248,7 @@ const GeographyApp = () => {
                             setSearchTerm('');
                         }}
                         className={`flex items-center gap-2 p-3 rounded-lg ${
-                            selectedSection === 'countries' ? 'bg-blue-500 text-white' : 'bg-white/80 hover:bg-white'
+                            selectedSection === 'countries' ? 'bg-blue-500 text-white' : 'bg-white hover:bg-gray-50'
                         }`}
                     >
                         <MapPin size={24} />
@@ -251,7 +263,7 @@ const GeographyApp = () => {
                         placeholder={`Search ${selectedSection}...`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full p-2 pl-10 border rounded-lg bg-white/90"
+                        className="w-full p-2 pl-10 border rounded-lg"
                     />
                     <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
                 </div>
@@ -268,15 +280,16 @@ const GeographyApp = () => {
                                 <div
                                     key={item.id}
                                     onClick={() => setSelectedItem(item)}
-                                    className={`p-4 rounded-lg border cursor-pointer bg-white/90 hover:bg-white ${
-                                        selectedItem?.id === item.id ? 'border-blue-500 border-2' : ''
+                                    className={`p-4 rounded-lg cursor-pointer bg-white ${
+                                        selectedItem?.id === item.id ? 'border-blue-500 border-2' : 'border'
                                     }`}
                                 >
                                     <div className="flex items-center gap-4">
-                                        <img
+                                        <ImageWithLoading
                                             src={item.flag || item.image}
                                             alt={item.name}
                                             className="w-16 h-16 rounded-lg object-cover"
+                                            imageId={`list-${item.id}`}
                                         />
                                         <div>
                                             <h3 className="font-semibold">{item.name}</h3>
@@ -292,13 +305,14 @@ const GeographyApp = () => {
 
                     {/* Details */}
                     {selectedItem && (
-                        <div className="border rounded-lg p-4 bg-white/90">
+                        <div className="border rounded-lg p-4 bg-white">
                             <div className="space-y-4">
                                 <h3 className="text-xl font-semibold">{selectedItem.name}</h3>
-                                <img
+                                <ImageWithLoading
                                     src={selectedItem.flag || selectedItem.image}
                                     alt={selectedItem.name}
                                     className="w-full h-48 object-cover rounded-lg"
+                                    imageId={`detail-${selectedItem.id}`}
                                 />
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -315,7 +329,7 @@ const GeographyApp = () => {
                                 </div>
 
                                 {selectedItem.facts && (
-                                    <div className="bg-white/90 p-4 rounded-lg">
+                                    <div className="bg-white/90 p-4 rounded-lg border">
                                         <h4 className="font-semibold mb-2">Facts</h4>
                                         <ul className="list-disc pl-5 space-y-2">
                                             {selectedItem.facts.map((fact, index) => (
@@ -326,15 +340,16 @@ const GeographyApp = () => {
                                 )}
 
                                 {selectedItem.landmarks && (
-                                    <div className="bg-white/90 p-4 rounded-lg">
+                                    <div className="bg-white/90 p-4 rounded-lg border">
                                         <h4 className="font-semibold mb-2">Famous Landmarks</h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                             {selectedItem.landmarks.map((landmark, index) => (
                                                 <div key={index} className="space-y-1">
-                                                    <img
+                                                    <ImageWithLoading
                                                         src={landmark.image}
                                                         alt={landmark.name}
                                                         className="w-full h-32 object-cover rounded-lg"
+                                                        imageId={`landmark-${selectedItem.id}-${index}`}
                                                     />
                                                     <p className="text-sm font-medium text-center">{landmark.name}</p>
                                                 </div>
@@ -344,7 +359,7 @@ const GeographyApp = () => {
                                 )}
 
                                 {selectedItem.funFacts && (
-                                    <div className="bg-white/90 p-4 rounded-lg">
+                                    <div className="bg-white/90 p-4 rounded-lg border">
                                         <h4 className="font-semibold mb-2">Fun Facts</h4>
                                         <ul className="list-disc pl-5 space-y-2">
                                             {selectedItem.funFacts.map((fact, index) => (
